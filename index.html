@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<head>
+    <title>Список дел</title>
+    <style>
+        #todo-add-form
+        {
+            position: absolute; 
+            top: 50%; 
+            padding: 5px;
+            border-style: solid; 
+            border-width: 1px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Список <u>СУПЕР</u> важных дел</h1>
+    <div id="todo-list-div">
+
+    </div>
+    <script>
+        const todo_elem = document.querySelector('#todo-list-div');
+        fetch('/todo-list')
+        .then(res => res.json())
+        .then(content => {
+            let text = '';
+            content.forEach(item => text += `<li>${item.text} ${item.completed == true ? '[√]' : '[ ]'}`)
+            todo_elem.innerHTML = `<ol id='todo-list'>${text}</ol>`;
+        });
+    </script>
+
+    <form id='todo-add-form' name='todo-add-form'>
+        <h2>Форма добавления</h2>
+        <input name='todoText' type="text" placeholder="Текст дела"/><br>
+        <input name='todoCompl' type="checkbox"/>Завершено<br><br>
+        <input type="submit" value="Добавить"/>
+    </form>
+
+    <script>
+        const add_form = document.forms[0];
+        add_form.onsubmit = () => {
+            const list = document.querySelector('#todo-list');
+            const text = add_form.elements.todoText.value;
+            const compl = add_form.elements.todoCompl.checked;
+            const newElem = document.createElement('li');
+            newElem.innerHTML = `${text} ${compl == true ? '[√]' : '[ ]'}`;
+            list.prepend(newElem);
+            if(list.childElementCount > 5)
+                list.removeChild(list.lastChild);
+
+            fetch('/add-todo', 
+            {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify({text: text, completed: compl})
+            });
+            return false;
+        };
+    </script>
+</body>
